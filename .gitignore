@@ -1,0 +1,11 @@
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.classpath
+*.project
+*.prefs
+/bin/
+/.settings/
