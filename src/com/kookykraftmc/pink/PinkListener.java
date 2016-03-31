@@ -4,19 +4,33 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-//import org.bukkit.entity.Sheep;
+import org.bukkit.entity.Sheep;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+/*import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.Vector;
+*/
+import org.bukkit.util.Vector;
 
 public class PinkListener implements Listener 
 {
@@ -72,43 +86,97 @@ public class PinkListener implements Listener
 				pinkCount = 0;
 				sheepCount++;
 			}
-			for(i=sheepCount;i>0;i--)
-			{
-log.info("About to spawn a sheep");
-				spawnSheep(p);
-log.info("Sheep deployed");
-			}
 		}
+		final int shoopCount = sheepCount;
+        Bukkit.getScheduler().runTask(plugin, new Runnable() {
+            @Override
+            public void run() {
+                for(int j=0;j<shoopCount;j++)
+                {
+                Sheep shoop = (Sheep) plugin.getServer().getWorld("world").spawnEntity(p.getLocation(), EntityType.SHEEP);
+                //shoop.teleport(p.getLocation());
+                shoop.setColor(shoopColour[rdm.nextInt(shoopColour.length)]);
+                }
+            }
+       });
 		e.setMessage(ChatColor.LIGHT_PURPLE + String.valueOf(msg));
 		p.sendMessage(Pink.prefix + "Congratulations, you won " + sheepCount + " sheep!");
 	}
-	/*
+
+/*
+ * This will do something in the future!
 	@EventHandler
-	public void onSpawn(CreatureSpawnEvent e)
+	public void useItem(PlayerInteractEvent e)
 	{
-		Entity ent = e.getEntity();
-		if(ent.getType().equals(EntityType.SHEEP))
-		{
-			Sheep shoop = (Sheep) ent;
-			shoop.setColor(shoopColour[rdm.nextInt(shoopColour.length)]);
-		}
+	    Player p = e.getPlayer();
+	    ItemStack i = p.getItemInHand();
+	    ItemMeta mData = i.getItemMeta();
+	    if(!i.getType().name().equals("INK_SACK")||mData == null) return;
+	    i.setAmount(i.getAmount()-1);
+	    p.setItemInHand(i);
+	    Location loc = p.getLocation();
+	    
 	}
-	*/
+*/
+	@EventHandler
+	public void bowFire(EntityShootBowEvent e)
+	{
+	    if(e.getEntity() instanceof Player) return;
+	    Entity arrow = e.getEntity();
+	    Vector velocity = arrow.getVelocity();
+	    ItemStack i = e.getBow();
+	    i.setType(Material.getMaterial("INK_SACK"));
+	    i.setDurability((short) 13);
+	    Item item = arrow.getWorld().dropItem(arrow.getLocation(), i);
+	    item.setVelocity(velocity);
+	}
+
+	@EventHandler
+	public void arrowHit(ProjectileHitEvent e)
+	{
+	    Pink.pinkinate(e.getEntity().getLocation(),rdm.nextInt(3)+4);
+	}
+
+	@EventHandler
+	public void dropGrenade(PlayerDropItemEvent e)
+	{
+	    final ItemStack i = e.getItemDrop().getItemStack();
+	    ItemMeta mData = i.getItemMeta();
+	    if(mData==null) return;
+	    else if(!ChatColor.stripColor(mData.getDisplayName()).equals("Pink Grenade")) return;
+
+	    
+        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+            @SuppressWarnings("deprecation")
+            @Override
+            public void run() {
+                Location loc = e.getItemDrop().getLocation();
+                i.setType(Material.getMaterial("AIR"));
+                for(int x = 0; x<15;x++)
+                {
+                    int bX = loc.getBlockX();
+                    int bY = loc.getBlockY();
+                    int bZ = loc.getBlockZ();
+                    World w = loc.getWorld();
+                    Location newLoc;
+                    for(int y = 0; y<30;y++)
+                    {
+                        bX += rdm.nextInt(3)-1;
+                        bY += rdm.nextInt(3)-1;
+                        bZ += rdm.nextInt(3)-1;
+                        newLoc = new Location(w, bX, bY, bZ);
+                        newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
+                    }
+                }
+            }
+        }, 60);
+ 
+	}
+
+	
 	public static void loadCfg()
 	{
 		//plugin.reloadCfg();
 		//woolCol = plugin.getConfig().getCharacterList("WoolColours");
-	}
-	
-	public static void spawnSheep(Player p)
-	{
-log.info("Preparing to deploy sheep");
-		//Sheep shoop
-		//Location loc = new Location(plugin.getServer().getWorld("world"), 0, 100, 0);
-		Entity e = plugin.getServer().getWorld("world").spawnEntity(p.getLocation(), EntityType.SHEEP);
-		e.teleport(p.getLocation());
-log.info("Sheep deployed");
-		//shoop.setColor(shoopColour[rdm.nextInt(shoopColour.length)]);
-log.info("Sheep is now pink");
 	}
 }

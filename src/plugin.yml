@@ -3,3 +3,8 @@ name: Pink
 version: 1.0
 author: Kraise_
 description: Pink.
+
+commands:
+  pink:
+    description: Make stuff more pink.
+    usage: /pink
