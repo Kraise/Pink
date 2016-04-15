@@ -25,11 +25,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-/*import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.util.Vector;
-*/
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class PinkListener implements Listener 
@@ -137,39 +133,68 @@ public class PinkListener implements Listener
 	    Pink.pinkinate(e.getEntity().getLocation(),rdm.nextInt(3)+4);
 	}
 
-	@EventHandler
+	@SuppressWarnings("deprecation")
+    @EventHandler
 	public void dropGrenade(PlayerDropItemEvent e)
 	{
 	    final ItemStack i = e.getItemDrop().getItemStack();
 	    ItemMeta mData = i.getItemMeta();
 	    if(mData==null) return;
-	    else if(!ChatColor.stripColor(mData.getDisplayName()).equals("Pink Grenade")) return;
+	    else if(mData.getDisplayName()==null) return;
 
-	    
-        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-            @SuppressWarnings("deprecation")
-            @Override
-            public void run() {
+	    switch(ChatColor.stripColor(mData.getDisplayName()))
+	    {
+	    case "Pink Grenade":
+	        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
+	            @Override
+	            public void run() {
+	                Location loc = e.getItemDrop().getLocation();
+	                loc.getWorld().createExplosion(loc, 50);
+	                i.setType(Material.getMaterial("AIR"));
+	                for(int x = 0; x<15;x++)
+	                {
+	                    int bX = loc.getBlockX();
+	                    int bY = loc.getBlockY();
+	                    int bZ = loc.getBlockZ();
+	                    World w = loc.getWorld();
+	                    Location newLoc;
+	                    for(int y = 0; y<30;y++)
+	                    {
+	                        bX += rdm.nextInt(3)-1;
+	                        bY += rdm.nextInt(3)-1;
+	                        bZ += rdm.nextInt(3)-1;
+	                        newLoc = new Location(w, bX, bY, bZ);
+	                        newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
+	                    }
+	                }
+	            }
+	        }, 60L);
+	        break;
+	    case "Pink Seeds":
+
+           i.setAmount(0);
+           plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new BukkitRunnable()
+           {
                 Location loc = e.getItemDrop().getLocation();
-                i.setType(Material.getMaterial("AIR"));
-                for(int x = 0; x<15;x++)
+                World w = loc.getWorld();
+                int bX = loc.getBlockX();
+                int bY = loc.getBlockY() + 5;
+                int bZ = loc.getBlockZ();
+                int counter = 0;
+                public void run() 
                 {
-                    int bX = loc.getBlockX();
-                    int bY = loc.getBlockY();
-                    int bZ = loc.getBlockZ();
-                    World w = loc.getWorld();
-                    Location newLoc;
-                    for(int y = 0; y<30;y++)
-                    {
-                        bX += rdm.nextInt(3)-1;
-                        bY += rdm.nextInt(3)-1;
-                        bZ += rdm.nextInt(3)-1;
-                        newLoc = new Location(w, bX, bY, bZ);
-                        newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
-                    }
+                    bX += rdm.nextInt(3)-1;
+                    bY += rdm.nextInt(3)-1;
+                    bZ += rdm.nextInt(3)-1;
+                    Location newLoc = new Location(w, bX, bY, bZ);
+                    if(!newLoc.getBlock().getType().isTransparent()&&!newLoc.getBlock().getType().name().equals("WOOL")) return;
+                    newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
+                    counter++;
+                    if(counter > 100) cancel();
                 }
-            }
-        }, 60);
+           }, 80L, 1L);
+	    }
+
  
 	}
 

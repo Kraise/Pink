@@ -11,7 +11,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Pink extends JavaPlugin 
 {
-	public static String prefix = ChatColor.LIGHT_PURPLE + "[Pink]";
+	public static String prefix = ChatColor.DARK_PURPLE + "[Pink]" + ChatColor.LIGHT_PURPLE;
 	public static String cPrefix = "[Pink]";
 	static Logger log = Logger.getLogger("Pink");
     static int[] colList = {2,10,6};
@@ -51,7 +51,7 @@ public class Pink extends JavaPlugin
                 for(int zCount = -amount; zCount<=amount; zCount++)
                 {
                     newLoc = new Location(w, pX + xCount, pY + yCount, pZ + zCount);
-                    if(!newLoc.getBlock().getType().name().equals("AIR"))
+                    if(!newLoc.getBlock().getType().isTransparent())
                     {
                         newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
                     }
