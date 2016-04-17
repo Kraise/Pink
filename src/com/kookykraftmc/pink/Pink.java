@@ -16,6 +16,7 @@ public class Pink extends JavaPlugin
 	static Logger log = Logger.getLogger("Pink");
     static int[] colList = {2,10,6};
     static Random rdm = new Random();
+    static boolean pinkChat = true;
 
 	public void onEnable() 
 	{

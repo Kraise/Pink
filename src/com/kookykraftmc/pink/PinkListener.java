@@ -25,7 +25,6 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 public class PinkListener implements Listener 
@@ -65,7 +64,7 @@ public class PinkListener implements Listener
 	@EventHandler
 	public void onSpeak(AsyncPlayerChatEvent e)
 	{
-		Player p = e.getPlayer();
+		final Player p = e.getPlayer();
 		char[] msg = e.getMessage().toCharArray();
 		int pinkCount = 0;
 		int sheepCount = 0;
@@ -135,7 +134,7 @@ public class PinkListener implements Listener
 
 	@SuppressWarnings("deprecation")
     @EventHandler
-	public void dropGrenade(PlayerDropItemEvent e)
+	public void dropGrenade(final PlayerDropItemEvent e)
 	{
 	    final ItemStack i = e.getItemDrop().getItemStack();
 	    ItemMeta mData = i.getItemMeta();
@@ -173,14 +172,13 @@ public class PinkListener implements Listener
 	    case "Pink Seeds":
 
            i.setAmount(0);
-           plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new BukkitRunnable()
+           final int taskID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
            {
                 Location loc = e.getItemDrop().getLocation();
                 World w = loc.getWorld();
                 int bX = loc.getBlockX();
                 int bY = loc.getBlockY() + 5;
                 int bZ = loc.getBlockZ();
-                int counter = 0;
                 public void run() 
                 {
                     bX += rdm.nextInt(3)-1;
@@ -189,10 +187,19 @@ public class PinkListener implements Listener
                     Location newLoc = new Location(w, bX, bY, bZ);
                     if(!newLoc.getBlock().getType().isTransparent()&&!newLoc.getBlock().getType().name().equals("WOOL")) return;
                     newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
-                    counter++;
-                    if(counter > 100) cancel();
                 }
-           }, 80L, 1L);
+           }, 1L, 4L);
+           
+           //No more snek after 600 ticks/~30 secs :(
+           plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
+           {
+			@Override
+			public void run() {
+				plugin.getServer().getScheduler().cancelTask(taskID);
+			}
+           }, 600L);
+        	   
+           
 	    }
 
  
