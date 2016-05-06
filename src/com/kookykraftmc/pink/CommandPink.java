@@ -4,6 +4,7 @@ import java.util.Random;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -38,7 +39,7 @@ public class CommandPink implements CommandExecutor
             Pink.pinkinate(p.getLocation(), 3);
             return true;
         }
-        switch (args[0])
+        switch (args[0].toLowerCase())
         {
         case "grenade":
             giveItem(p, "INK_SACK", ChatColor.DARK_PURPLE + "Pink Grenade", args, 13);
@@ -46,6 +47,17 @@ public class CommandPink implements CommandExecutor
         case "seed":
             giveItem(p, "SEEDS", ChatColor.LIGHT_PURPLE + "Pink Seeds", args, 0);
             break;
+        case "go":
+            PinkListener.goSnek = !PinkListener.goSnek;
+            sender.sendMessage(Pink.prefix + (PinkListener.goSnek?"Pink snakes will now be so VERY large.":"Now oppressing pink snakes. How rude."));
+            break;
+        case "chat":
+            Pink.pinkChat = !Pink.pinkChat;
+            sender.sendMessage(Pink.prefix + (Pink.pinkChat?"PINK":"Not pink :("));
+            break;
+        case "killsnakes":
+            Bukkit.getServer().getScheduler().cancelTasks(pink);
+            sender.sendMessage(Pink.prefix + "You monster D:");
         default:
             p.sendMessage(Pink.prefix + "Unknown parameter.");
         }

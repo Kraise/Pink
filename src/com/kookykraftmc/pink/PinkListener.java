@@ -38,6 +38,7 @@ public class PinkListener implements Listener
 	static char[] lowPink = {'p','i','n','k'};
 	static char[] upPink = {'P','I','N','K'};
 	static DyeColor[] shoopColour = {DyeColor.PINK, DyeColor.MAGENTA, DyeColor.PURPLE};
+	static public boolean goSnek;
 	
 	public PinkListener(Pink main)
 	{
@@ -64,6 +65,7 @@ public class PinkListener implements Listener
 	@EventHandler
 	public void onSpeak(AsyncPlayerChatEvent e)
 	{
+	    if(!Pink.pinkChat) return;
 		final Player p = e.getPlayer();
 		char[] msg = e.getMessage().toCharArray();
 		int pinkCount = 0;
@@ -172,7 +174,34 @@ public class PinkListener implements Listener
 	    case "Pink Seeds":
 
            i.setAmount(0);
-           final int taskID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
+           //First grow up a bit
+           final int taskStartID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
+           {
+                Location loc = e.getItemDrop().getLocation();
+                World w = loc.getWorld();
+                int bX = loc.getBlockX();
+                int bY = loc.getBlockY();
+                int bZ = loc.getBlockZ();
+                public void run() 
+                {
+                    bX += rdm.nextInt(3)-1;
+                    bY += 1;
+                    bZ += rdm.nextInt(3)-1;
+                    Location newLoc = new Location(w, bX, bY, bZ);
+                    if(!newLoc.getBlock().getType().isTransparent()&&!newLoc.getBlock().getType().name().equals("WOOL")) return;
+                    newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
+                }
+           }, 200L, 2L);
+           //Now stop
+           plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
+           {
+                @Override
+                public void run() {
+                    plugin.getServer().getScheduler().cancelTask(taskStartID);
+            }
+           }, 210L);
+           //Grow in other directions too
+           final int taskMainID = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
            {
                 Location loc = e.getItemDrop().getLocation();
                 World w = loc.getWorld();
@@ -188,16 +217,16 @@ public class PinkListener implements Listener
                     if(!newLoc.getBlock().getType().isTransparent()&&!newLoc.getBlock().getType().name().equals("WOOL")) return;
                     newLoc.getBlock().setTypeIdAndData(35, (byte) colList[rdm.nextInt(3)], true);
                 }
-           }, 1L, 4L);
-           
+           }, 210L, 1L);
            //No more snek after 600 ticks/~30 secs :(
            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
            {
-			@Override
-			public void run() {
-				plugin.getServer().getScheduler().cancelTask(taskID);
+    			@Override
+    			public void run() {
+    			    if(!goSnek)
+    			        plugin.getServer().getScheduler().cancelTask(taskMainID);
 			}
-           }, 600L);
+           }, 810L);
         	   
            
 	    }
